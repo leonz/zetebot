@@ -1,4 +1,5 @@
 import json
+import os
 from threading import Lock
 
 import requests
@@ -74,7 +75,7 @@ class ZeteBot(WebSocketClient):
                 }}'.format(self.botname, channel, text, self.get_id())
 
 if __name__ == '__main__':
-    token = 'xoxb-7691461281-O1Rgv7evcKwx1ndv31CBp7Dd'
+    token = os.environ['SLACK_AUTH']
     resp = requests.post('https://slack.com/api/rtm.start?token=%s' % token)
     url = json.loads(resp.content)['url']
 
