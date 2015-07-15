@@ -1,1 +1,1 @@
-web: python zetebot.py --log-file=-
+worker: python zetebot.py
