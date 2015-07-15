@@ -1,8 +1,11 @@
-import requests
 import json
-from ws4py.client.threadedclient import WebSocketClient
 from threading import Lock
+
+import requests
+from ws4py.client.threadedclient import WebSocketClient
+
 from karma import KarmaHandler
+
 
 class ZeteBot(WebSocketClient):
 
@@ -13,40 +16,38 @@ class ZeteBot(WebSocketClient):
         self.id = 0
         self.id_lock = Lock()
 
-
-
     def closed(self, code, reason=None):
         print "Connection was closed."
 
     def received_message(self, m):
         try:
             message = json.loads(m.data)
-            
+
             if message.get('user') == self.botname:
                 # prevent feedback loops
                 return
-           
+
             if message.get('type') != 'message':
                 # we only care about message
                 return
 
             text = message.get('text')
-            user = message.get('user')
 
             # Begin feature handling
 
             # KARMA Changer
-            identifiers = ('++', '--', '+-')
-            if any(ids in text for ids in identifiers) or \
-                (text.startswith('!') and len(text) > 1):
-                KarmaHandler('').handle(text)  
+            is_karma_write = any(ids in text for ids in ('++', '--', '+-'))
+            is_karma_read = text.startswith('!') and len(text) > 1
+
+            if is_karma_read or is_karma_write:
+                KarmaHandler('').handle(text)
                 return
 
             # All other features start with 'zetebot'
             if not text.startswith('zetebot '):
                 return
 
-            text = text[8:] # remove 'zetebot' prefix
+            text = text[8:]  # remove 'zetebot' prefix
             channel = message.get('channel')
 
             # Karma Info
@@ -80,4 +81,3 @@ if __name__ == '__main__':
     ws = ZeteBot(url)
     ws.connect()
     ws.run_forever()
-
