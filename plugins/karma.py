@@ -9,20 +9,20 @@ class KarmaHandler(object):
 
     def handle(self, text):
         if '++' in text:
-            self.user = self.grab_user_from_karma_change(text, '++')
+            self.user = self.grab_user_from_text(text, '++')
             self.plus()
         elif '--' in text:
-            self.user = self.grab_user_from_change(text, '--')
+            self.user = self.grab_user_from_text(text, '--')
             self.minus()
         elif '+-' in text:
-            self.user = self.grab_user_from_karma_change(text, '+-')
+            self.user = self.grab_user_from_text(text, '+-')
             self.meh()
         else:
             print "Invalid use of handle. Called with text: %s" % text
             return
 
     @staticmethod
-    def grab_user_from_karma_change(text, changer):
+    def grab_user_from_text(text, changer):
         return [x for x in text.split(' ') if
                 x.endswith(changer)][0][:-2].title()
 
