@@ -68,7 +68,7 @@ class ZeteBot(WebSocketClient):
             # Knowledge Retrieval
             identifiers = ('what is ', 'what are ', 'who is ', 'who are ')
             if any([match_text.startswith(ids) for ids in identifiers]):
-                question = match_text.split(' ')[2]
+                question = ' '.join(match_text.split(' ')[2:])
                 result = knowledge.KnowledgeHandler.retrieve(question)
                 self.send(self.format_message(channel, result))
                 return

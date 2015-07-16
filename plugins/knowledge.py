@@ -14,12 +14,12 @@ class KnowledgeHandler(object):
             words = text.split(' is ')
         x = words[0].lower()
 
+        if len(words) == 1:
+            raise InvalidInputException()
+
         if x == 'you':
             x = config.botname
             text = text.replace('you are', 'I am')
-
-        if words[1].lower() not in ('is', 'are'):
-            raise InvalidInputException()
 
         cls.collection.update(
             {"x": x},
