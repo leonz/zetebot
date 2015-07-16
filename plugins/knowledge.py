@@ -8,7 +8,9 @@ class KnowledgeHandler(object):
     @classmethod
     def learn(cls, text):
         """ text: x is y OR x are y """
-        words = text.split(' ')
+        words = text.split(' are ')
+        if len(words) == 1:
+            words = text.split(' is ')
         x = words[0].lower()
 
         if x == 'you':
