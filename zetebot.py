@@ -5,6 +5,7 @@ import requests
 from ws4py.client.threadedclient import WebSocketClient
 
 from config import config
+from plugins import InvalidInputException
 from plugins import karma
 from plugins import knowledge
 from plugins import quote
@@ -85,7 +86,9 @@ class ZeteBot(WebSocketClient):
                 result = quote.QuoteHandler.retrieve(user=speaker)
                 self.send(self.format_message(channel, result))
                 return
-
+        except InvalidInputException:
+            # A user messed up. Not my problem.
+            return
         except Exception as e:
             # Silence all exceptions so that the bot can keep working.
             # It's likely caused by trying to parse malformed input
