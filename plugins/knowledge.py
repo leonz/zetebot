@@ -30,8 +30,7 @@ class KnowledgeHandler(object):
 
     @classmethod
     def retrieve(cls, question):
-        """ text: x is y OR x are y """
-        result = cls.collection.find_one({"x": question})
+        result = cls.collection.find_one({"x": question.strip()})
         if result is None:
             return "I don't know.  I'm just a useless bot."
 
