@@ -1,5 +1,4 @@
 import json
-import sys
 from threading import Lock
 
 import requests
@@ -87,10 +86,11 @@ class ZeteBot(WebSocketClient):
                 self.send(self.format_message(channel, result))
                 return
 
-        except:
+        except Exception as e:
             # Silence all exceptions so that the bot can keep working.
             # It's likely caused by trying to parse malformed input
-            print "Unexpected error:", sys.exc_info()[0]
+            result = "Exception: %s" % repr(e)
+            self.send(self.format_message(config.debug, result))
 
     def get_id(self):
         with self.id_lock:
