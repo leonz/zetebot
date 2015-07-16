@@ -1,24 +1,24 @@
-from database import Database
+from config import config
 
 
 class KarmaHandler(object):
 
     def __init__(self, user):
         self.user = user.title()
-        self.collection = Database.db.karma
-    
+        self.collection = config.db.karma
+
     def handle(self, text):
         if '++' in text:
             self.user = self.grab_user_from_karma_change(text, '++')
             self.plus()
         elif '--' in text:
-            self.user = self.grab_user_from_karma_change(text, '--')
+            self.user = self.grab_user_from_change(text, '--')
             self.minus()
         elif '+-' in text:
             self.user = self.grab_user_from_karma_change(text, '+-')
             self.meh()
         else:
-            print "Invalid use of handle. Called with text: %s" % s
+            print "Invalid use of handle. Called with text: %s" % text
             return
 
     @staticmethod
@@ -29,22 +29,22 @@ class KarmaHandler(object):
     def plus(self):
         self.collection.update(
             {"name": self.user},
-            {"$inc" : {"plus": 1}},
-            upsert = True
+            {"$inc": {"plus": 1}},
+            upsert=True
         )
 
     def minus(self):
         self.collection.update(
             {"name": self.user},
-            {"$inc" : {"minus": 1}},
-            upsert = True
+            {"$inc": {"minus": 1}},
+            upsert=True
         )
 
     def meh(self):
         self.collection.update(
             {"name": self.user},
-            {"$inc" : {"meh": 1}},
-            upsert = True
+            {"$inc": {"meh": 1}},
+            upsert=True
         )
 
     def get(self):
@@ -69,4 +69,3 @@ class KarmaHandler(object):
     @staticmethod
     def top_users():
         return "User List"
-
