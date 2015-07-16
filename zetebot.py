@@ -40,7 +40,7 @@ class ZeteBot(WebSocketClient):
 
             # Karma Modifier
             if any(ids in text for ids in ('++', '--', '+-')):
-                karma.KarmaHandler('').handle(text)
+                karma.KarmaHandler.handle(text)
                 return
 
             # All other features start with 'zetebot'
@@ -54,7 +54,7 @@ class ZeteBot(WebSocketClient):
             # Karma Info
             if match_text.startswith('karma '):
                 karma_user = text.split(' ')[1]
-                karma_stats = karma.KarmaHandler(karma_user).get()
+                karma_stats = karma.KarmaHandler.get(karma_user)
                 self.send(self.format_message(channel, karma_stats))
                 return
 

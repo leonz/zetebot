@@ -4,20 +4,19 @@ from plugins import InvalidInputException
 
 class KarmaHandler(object):
 
-    def __init__(self, user):
-        self.user = user.title()
-        self.collection = config.db.karma
+    collection = config.db.karma
 
-    def handle(self, text):
+    @classmethod
+    def handle(cls, text):
         if '++' in text:
-            self.user = self.grab_user_from_text(text, '++')
-            self.plus()
+            user = cls.grab_user_from_text(text, '++')
+            cls.plus(user)
         elif '--' in text:
-            self.user = self.grab_user_from_text(text, '--')
-            self.minus()
+            user = cls.grab_user_from_text(text, '--')
+            cls.minus(user)
         elif '+-' in text:
-            self.user = self.grab_user_from_text(text, '+-')
-            self.meh()
+            user = cls.grab_user_from_text(text, '+-')
+            cls.meh(user)
         else:
             raise InvalidInputException()
 
@@ -26,29 +25,33 @@ class KarmaHandler(object):
         return [x for x in text.split(' ') if
                 x.endswith(changer)][0][:-2].title()
 
-    def plus(self):
-        self.collection.update(
-            {"name": self.user},
+    @classmethod
+    def plus(cls, user):
+        cls.collection.update(
+            {"name": user},
             {"$inc": {"plus": 1}},
             upsert=True
         )
 
-    def minus(self):
-        self.collection.update(
-            {"name": self.user},
+    @classmethod
+    def minus(cls, user):
+        cls.collection.update(
+            {"name": user},
             {"$inc": {"minus": 1}},
             upsert=True
         )
 
-    def meh(self):
-        self.collection.update(
-            {"name": self.user},
+    @classmethod
+    def meh(cls, user):
+        cls.collection.update(
+            {"name": user},
             {"$inc": {"meh": 1}},
             upsert=True
         )
 
-    def get(self):
-        result = self.collection.find_one({"name": self.user})
+    @classmethod
+    def get(cls, user):
+        result = cls.collection.find_one({"name": user.title()})
         plus, minus, meh = 0, 0, 0
         if result:
             if result.get('plus'):
@@ -59,7 +62,7 @@ class KarmaHandler(object):
                 meh = result.get('meh')
 
         message = "*Karma* for {0}: {1}++, {2}--, {3}+-".format(
-            self.user,
+            user,
             plus,
             minus,
             meh
