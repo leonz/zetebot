@@ -30,7 +30,6 @@ class QuoteHandler(object):
 
     @classmethod
     def retrieve(cls, user=None):
-
         result = None
         if user:
             count = cls.collection.find({"user": user.lower()}).count()

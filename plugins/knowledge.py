@@ -13,6 +13,7 @@ class KnowledgeHandler(object):
 
         if x == 'you':
             x = config.botname
+            text = text.replace('you are', 'I am')
 
         if words[1].lower() not in ('is', 'are'):
             return
