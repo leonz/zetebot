@@ -1,4 +1,5 @@
 from config import config
+from plugins import InvalidInputException
 
 
 class KnowledgeHandler(object):
@@ -18,7 +19,7 @@ class KnowledgeHandler(object):
             text = text.replace('you are', 'I am')
 
         if words[1].lower() not in ('is', 'are'):
-            return
+            raise InvalidInputException()
 
         cls.collection.update(
             {"x": x},

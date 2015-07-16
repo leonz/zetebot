@@ -1,4 +1,5 @@
 from config import config
+from plugins import InvalidInputException
 
 
 class KarmaHandler(object):
@@ -18,8 +19,7 @@ class KarmaHandler(object):
             self.user = self.grab_user_from_text(text, '+-')
             self.meh()
         else:
-            print "Invalid use of handle. Called with text: %s" % text
-            return
+            raise InvalidInputException()
 
     @staticmethod
     def grab_user_from_text(text, changer):

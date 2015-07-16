@@ -1,6 +1,7 @@
 import random
 
 from config import config
+from plugins import InvalidInputException
 
 
 class QuoteHandler(object):
@@ -15,7 +16,7 @@ class QuoteHandler(object):
         quote = words[1]
 
         if not quote:
-            return
+            raise InvalidInputException()
 
         if not user:
             user = "A Glorious Zete"
