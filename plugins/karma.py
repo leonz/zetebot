@@ -22,8 +22,12 @@ class KarmaHandler(object):
 
     @staticmethod
     def grab_user_from_text(text, changer):
-        return [x for x in text.split(' ') if
-                x.endswith(changer)][0][:-2].title()
+        try:
+            return [x for x in text.split(' ') if
+                    x.endswith(changer)][0][:-2].title()
+        except IndexError:
+            # caused by the user using karma improperly (eg. ++name)
+            raise InvalidInputException()
 
     @classmethod
     def plus(cls, user):
