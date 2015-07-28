@@ -1,6 +1,7 @@
 """ This class is only responsible for scheduling events, i.e. storing them
 in the database.  A different process polls the database for expiring events """
 import datetime
+import time as timemod
 
 from config import config
 from plugins import InvalidInputException
@@ -36,7 +37,7 @@ class ReminderHandler(object):
                 int(year),
                 int(month),
                 int(day),
-                int(hour) + pmcorrect + 5, #correct for utc
+                int(hour) + pmcorrect + 5 - timemod.localtime().tm_isdst, #correct for UTC, AND DAYLIGHsdst = time.localtime().tm_isdstT
                 int(minute)
             )
 
