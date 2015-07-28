@@ -9,12 +9,13 @@ from plugins import InvalidInputException
 from plugins import karma
 from plugins import knowledge
 from plugins import quote
+from plugins import remind
 
 
 class ZeteBot(WebSocketClient):
 
     def opened(self):
-        print "Opened."
+        print "Connection was opened."
         self.id = 0
         self.id_lock = Lock()
 
@@ -86,6 +87,19 @@ class ZeteBot(WebSocketClient):
                 result = quote.QuoteHandler.retrieve(user=speaker)
                 self.send(self.format_message(channel, result))
                 return
+
+            # PRIVILEGED COMMANDS BELOW THIS POINT #
+            if message.get('user') not in EBOARD:
+                return
+
+            user = message.get('user')
+
+            if match_text.startswith('remind everyone'):
+                event = text[16:]
+                result = remind.ReminderHandler.schedule(event, channel, user)
+                self.send(self.format_message(channel, result))
+                return
+
         except InvalidInputException:
             # A user messed up. Not my problem.
             return
@@ -110,6 +124,16 @@ class ZeteBot(WebSocketClient):
                 }}'.format(config.botname, channel, text, self.get_id())
 
 if __name__ == '__main__':
+    global EBOARD
+
+    # Pull the members of E-Board, who have special privileges
+    resp = requests.post(
+        'https://slack.com/api/groups.info?token=%s&channel=%s' %
+        (config.slack_token, 'G04SY76KW')
+    )
+
+    EBOARD = json.loads(resp.content)['group']['members']
+
     resp = requests.post(
         'https://slack.com/api/rtm.start?token=%s' % config.slack_token
     )
