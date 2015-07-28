@@ -5,6 +5,7 @@ import datetime
 from config import config
 from plugins import InvalidInputException
 
+
 class ReminderHandler(object):
 
     collection = config.db.events
@@ -35,11 +36,11 @@ class ReminderHandler(object):
                 int(year),
                 int(month),
                 int(day),
-                int(hour) + pmcorrect,
+                int(hour) + pmcorrect + 5, #correct for utc
                 int(minute)
             )
 
-            if event_time < datetime.datetime.now() + datetime.timedelta(minutes=5):
+            if event_time < datetime.datetime.utcnow() + datetime.timedelta(minutes=5):
                 return "Sorry, can't do that. Give at least 5 minutes to schedule a reminder."
 
         elif event.startswith('in '):
@@ -48,13 +49,13 @@ class ReminderHandler(object):
                 if int(amount) < 5:
                     return "Sorry, can't do that. Give at least 5 minutes to schedule a reminder."
 
-                event_time = datetime.datetime.now() + datetime.timedelta(minutes=int(amount))
+                event_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=int(amount))
 
             elif unit.startswith('hour'):
                 if int(amount) < 1:
                     raise InvalidInputException('Invalid amount for hours to reminder')
 
-                event_time = datetime.datetime.now() + datetime.timedelta(hours=int(amount))
+                event_time = datetime.datetime.utcnow() + datetime.timedelta(hours=int(amount))
 
         cls.collection.insert({
             'time': event_time,
