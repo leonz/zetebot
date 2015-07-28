@@ -37,7 +37,7 @@ class ReminderHandler(object):
                 int(year),
                 int(month),
                 int(day),
-                int(hour) + pmcorrect + 5 - timemod.localtime().tm_isdst, #correct for UTC, AND DAYLIGHsdst = time.localtime().tm_isdstT
+                int(hour) + pmcorrect + 4 + (1-timemod.localtime().tm_isdst), #correct for UTC, AND DAYLIGHsdst = time.localtime().tm_isdstT
                 int(minute)
             )
 
