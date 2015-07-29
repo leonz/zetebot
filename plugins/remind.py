@@ -33,11 +33,19 @@ class ReminderHandler(object):
             month, day, year = date.split('/')
             hour, minute = time.split(':')
 
+            # 4 because we are working off of Eastern time
+            timezone_correction = 4 + (1 - timemod.localtime().tm_isdst)
+            hour_corrected = int(hour) + pmcorrect + timezone_correction
+
+            if hour_corrected > 23:
+                hour_corrected -= 24
+                day = int(day) + 1
+
             event_time = datetime.datetime(
                 int(year),
                 int(month),
                 int(day),
-                int(hour) + pmcorrect + 4 + (1-timemod.localtime().tm_isdst), #correct for UTC, AND DAYLIGHsdst = time.localtime().tm_isdstT
+                hour_corrected,
                 int(minute)
             )
 

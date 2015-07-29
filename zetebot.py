@@ -15,11 +15,13 @@ from plugins import remind
 class ZeteBot(WebSocketClient):
 
     def opened(self):
+        self.send(self.format_message(config.debug, "Zetebot connection opened."))
         print "Connection was opened."
         self.id = 0
         self.id_lock = Lock()
 
     def closed(self, code, reason=None):
+        self.send(self.format_message(config.debug, "Zetebot connection closed."))
         print "Connection was closed."
 
     def received_message(self, m):
@@ -43,6 +45,13 @@ class ZeteBot(WebSocketClient):
             if any(ids in text for ids in ('++', '--', '+-')):
                 karma.KarmaHandler.handle(text)
                 return
+
+            # just being nice
+            if match_text == 'thanks zetebot':
+                self.send(self.format_message(
+                    message.get('channel'),
+                    ":heart:"
+                ))
 
             # All other features start with 'zetebot'
             if not match_text.startswith('zetebot '):
