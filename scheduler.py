@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 """ This is a scheduler that polls the MongoDB looking for new events.
+It's run on a separate process from Zetebot
 
-It's run separately as a CRON job."""
+Currently, I have Zetebot running on Heroku while the scheduler runs
+on Openshift """
 import datetime
 import os
 
 import requests
 from pymongo import MongoClient
 
+class FinishedException(Exception):
+    pass
 
 class ZetebotScheduler(object):
 
@@ -33,16 +37,20 @@ class ZetebotScheduler(object):
             )
 
             if not event:
-                print "No events found"
+                raise FinishedException()
             else:
                 print "Found an event. Posting: %s" % event.get('message')
                 channel = event.get('channel')
-                message = '*Reminder for @everyone:* ' + event.get('message')
+                message = '*Notice for <!%s>:* %s' % (event.get('type'), event.get('message'))
                 self.send(channel, message)
-
+        except FinishedException as e:
+            # Break out of the loop, we found nothing new
+            print "No events found"
+            raise e
         except Exception as e:
             result = "Scheduler Exception: %s" % repr(e)
             self.send(os.environ['DEBUG_CHANNEL'], result)
 
 if __name__ == '__main__':
-    ZetebotScheduler().run()
+    while True:
+        ZetebotScheduler().run()
