@@ -105,9 +105,18 @@ class ZeteBot(WebSocketClient):
 
             if match_text.startswith('remind everyone'):
                 event = text[16:]
-                result = remind.ReminderHandler.schedule(event, channel, user)
+                type_ = 'everyone'
+                result = remind.ReminderHandler.schedule(event, channel, user, type_)
                 self.send(self.format_message(channel, result))
                 return
+
+            if match_text.startswith('remind channel'):
+                event = text[15:]
+                type_ = 'channel'
+                result = remind.ReminderHandler.schedule(event, channel, user, type_)
+                self.send(self.format_message(channel, result))
+                return
+
 
         except InvalidInputException:
             # A user messed up. Not my problem.

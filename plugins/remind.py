@@ -12,7 +12,7 @@ class ReminderHandler(object):
     collection = config.db.events
 
     @classmethod
-    def schedule(cls, event, channel, user):
+    def schedule(cls, event, channel, user, type_):
         timestamp, message = event.split(' that ')
         message = message.strip()
         if not message:
@@ -73,7 +73,7 @@ class ReminderHandler(object):
             'user': user,
             'channel': channel,
             'message': message,
-            'type': 'reminders-everyone',
+            'type': type_,
             'pending': True
         })
 
