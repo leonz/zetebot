@@ -15,10 +15,10 @@ from plugins import remind
 class ZeteBot(WebSocketClient):
 
     def opened(self):
-        self.send(self.format_message(config.debug, "Zetebot connection opened."))
         print "Connection was opened."
         self.id = 0
         self.id_lock = Lock()
+        self.send(self.format_message(config.debug, "Zetebot connection opened."))
 
     def closed(self, code, reason=None):
         self.send(self.format_message(config.debug, "Zetebot connection closed."))
