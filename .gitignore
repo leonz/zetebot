@@ -1,6 +1,7 @@
 env
 *.pyc
 .pre-commit-config.yaml
-scheduler/*
-!scheduler/.openshift/cron/minutely/scheduler.py
 .ropeproject
+
+
+
