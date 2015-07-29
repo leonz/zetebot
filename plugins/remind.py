@@ -77,4 +77,9 @@ class ReminderHandler(object):
             'pending': True
         })
 
-        return "Okay, I'll remind everyone then."
+        if type_ == 'channel':
+            them = 'the channel'
+        else:
+            them = 'everyone'
+
+        return "Okay, I'll remind %s then." % them
