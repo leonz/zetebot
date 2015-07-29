@@ -26,6 +26,8 @@ class ReminderHandler(object):
 
             if time.lower().endswith('am'):
                 time = time[:-2]
+                if time.startswith('12'):
+                    pmcorrect = -12
             elif time.lower().endswith('pm'):
                 time = time[:-2]
                 pmcorrect = 12
