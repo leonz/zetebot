@@ -48,9 +48,9 @@ class ZeteBot(WebSocketClient):
                 return
 
             # just being nice
-            possible_thanks = set((match_text, match_text[:-1]))
-            valid_thanks = set(('thanks zetebot', 'thank you zetebot'))
-            if possible_thanks.intersection(valid_thanks):
+            possible_thanks = (match_text, match_text[:-1])
+            valid_thanks = ('thanks zetebot', 'thank you zetebot')
+            if any(x for x in possible_thanks if x in valid_thanks):
                 self.send(self.format_message(
                     message.get('channel'),
                     ":heart:"
