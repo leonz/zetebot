@@ -20,7 +20,9 @@ class ZeteBot(WebSocketClient):
         self.id_lock = Lock()
 
     def closed(self, code, reason=None):
-        self.send(self.format_message(config.debug, "Zetebot connection closed."))
+        self.send(
+            self.format_message(config.debug, "Zetebot connection closed.")
+        )
         print "Connection was closed."
 
     def received_message(self, m):
@@ -46,7 +48,8 @@ class ZeteBot(WebSocketClient):
                 return
 
             # just being nice
-            if match_text == 'thanks zetebot':
+            thanks = ('thanks zetebot', 'thank you zetebot')
+            if match_text in thanks:
                 self.send(self.format_message(
                     message.get('channel'),
                     ":heart:"
@@ -105,17 +108,26 @@ class ZeteBot(WebSocketClient):
             if match_text.startswith('remind everyone'):
                 event = text[16:]
                 type_ = 'everyone'
-                result = remind.ReminderHandler.schedule(event, channel, user, type_)
+                result = remind.ReminderHandler.schedule(
+                    event,
+                    channel,
+                    user,
+                    type_
+                )
                 self.send(self.format_message(channel, result))
                 return
 
             if match_text.startswith('remind channel'):
                 event = text[15:]
                 type_ = 'channel'
-                result = remind.ReminderHandler.schedule(event, channel, user, type_)
+                result = remind.ReminderHandler.schedule(
+                    event,
+                    channel,
+                    user,
+                    type_
+                )
                 self.send(self.format_message(channel, result))
                 return
-
 
         except InvalidInputException:
             # A user messed up. Not my problem.
