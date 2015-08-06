@@ -7,6 +7,10 @@ from config import config
 from plugins import InvalidInputException
 
 
+def from_now(**kwargs):
+    return datetime.datetime.now() + datetime.timedelta(**kwargs)
+
+
 class ReminderHandler(object):
 
     collection = config.db.events
@@ -21,23 +25,26 @@ class ReminderHandler(object):
         timestamp = timestamp[3:]
         if event.startswith('on '):
             date, time = timestamp.split(' at ')
+            time = time.lower()
 
-            pmcorrect = 0
+            twelve_correction = 0
 
-            if time.lower().endswith('am'):
+            if time.endswith('am'):
                 time = time[:-2]
+                # midnight is 0 in datetime
                 if time.startswith('12'):
-                    pmcorrect = -12
-            elif time.lower().endswith('pm'):
+                    twelve_correction = -12
+            elif time.endswith('pm'):
                 time = time[:-2]
-                pmcorrect = 12
+                twelve_correction = 12
 
             month, day, year = date.split('/')
             hour, minute = time.split(':')
 
             # 4 because we are working off of Eastern time
-            timezone_correction = 4 + (1 - timemod.localtime().tm_isdst)
-            hour_corrected = int(hour) + pmcorrect + timezone_correction
+            tz_offset = 4
+            timezone_correction = tz_offset + (1 - timemod.localtime().tm_isdst)
+            hour_corrected = int(hour) + twelve_correction + timezone_correction
 
             if hour_corrected > 23:
                 hour_corrected -= 24
@@ -51,22 +58,27 @@ class ReminderHandler(object):
                 int(minute)
             )
 
-            if event_time < datetime.datetime.utcnow() + datetime.timedelta(minutes=5):
-                return "Sorry, can't do that. Give at least 5 minutes to schedule a reminder."
+            if event_time < from_now(minutes=5):
+                return ("Sorry, can't do that. Give at least 5 minutes "
+                        "to schedule a reminder.")
 
         elif event.startswith('in '):
+
             amount, unit = timestamp.split(' ')
+
             if unit.startswith('minute'):
                 if int(amount) < 5:
-                    return "Sorry, can't do that. Give at least 5 minutes to schedule a reminder."
-
-                event_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=int(amount))
-
+                    return ("Sorry, can't do that. Give at least 5 minutes "
+                            "to schedule a reminder.")
+                else:
+                    event_time = from_now(minutes=int(amount))
             elif unit.startswith('hour'):
                 if int(amount) < 1:
-                    raise InvalidInputException('Invalid amount for hours to reminder')
-
-                event_time = datetime.datetime.utcnow() + datetime.timedelta(hours=int(amount))
+                    raise InvalidInputException(
+                        'Invalid amount for hours to reminder'
+                    )
+                else:
+                    event_time = from_now(hours=int(amount))
 
         cls.collection.insert({
             'time': event_time,
@@ -77,9 +89,5 @@ class ReminderHandler(object):
             'pending': True
         })
 
-        if type_ == 'channel':
-            them = 'the channel'
-        else:
-            them = 'everyone'
-
+        them = 'the channel' if type_ == 'channel' else 'everyone'
         return "Okay, I'll remind %s then." % them

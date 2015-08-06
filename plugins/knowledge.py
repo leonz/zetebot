@@ -10,8 +10,10 @@ class KnowledgeHandler(object):
     def learn(cls, text):
         """ text: x is y OR x are y """
         words = text.split(' are ')
+
         if len(words) == 1:
             words = text.split(' is ')
+
         x = words[0].lower()
 
         if len(words) == 1:
@@ -32,6 +34,7 @@ class KnowledgeHandler(object):
     @classmethod
     def retrieve(cls, question):
         result = cls.collection.find_one({"x": question.strip()})
+
         if result is None:
             return "I don't know.  I'm just a useless bot."
 
