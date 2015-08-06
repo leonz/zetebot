@@ -43,14 +43,15 @@ class ZeteBot(WebSocketClient):
             # Begin feature handling
 
             # Karma Modifier
-            if any(ids in text for ids in ('++', '--', '+-')):
+            ops = ('++', '--', '+-')
+            if any(ids in text for ids in ops):
                 plugins.KarmaHandler.handle(text)
                 return
 
             # just being nice
             possible_thanks = (match_text, match_text[:-1])
             valid_thanks = ('thanks zetebot', 'thank you zetebot')
-            if any(x for x in possible_thanks if x in valid_thanks):
+            if any(x in possible_thanks for x in valid_thanks):
                 self.send(self.format_message(
                     message.get('channel'),
                     ":heart:"
