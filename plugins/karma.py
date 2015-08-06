@@ -1,5 +1,5 @@
 from config import config
-from plugins import InvalidInputException
+from zetebot import InvalidInputException
 
 
 class KarmaHandler(object):

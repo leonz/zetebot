@@ -4,7 +4,7 @@ import datetime
 import time as timemod
 
 from config import config
-from plugins import InvalidInputException
+from zetebot import InvalidInputException
 
 
 def from_now(**kwargs):

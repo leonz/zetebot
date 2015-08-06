@@ -4,12 +4,12 @@ from threading import Lock
 import requests
 from ws4py.client.threadedclient import WebSocketClient
 
+import plugins
 from config import config
-from plugins import InvalidInputException
-from plugins import karma
-from plugins import knowledge
-from plugins import quote
-from plugins import remind
+
+
+class InvalidInputException(Exception):
+    pass
 
 
 class ZeteBot(WebSocketClient):
@@ -44,12 +44,13 @@ class ZeteBot(WebSocketClient):
 
             # Karma Modifier
             if any(ids in text for ids in ('++', '--', '+-')):
-                karma.KarmaHandler.handle(text)
+                plugins.KarmaHandler.handle(text)
                 return
 
             # just being nice
-            thanks = ('thanks zetebot', 'thank you zetebot')
-            if match_text in thanks:
+            possible_thanks = set((match_text, match_text[:-1]))
+            valid_thanks = set(('thanks zetebot', 'thank you zetebot'))
+            if possible_thanks.intersection(valid_thanks):
                 self.send(self.format_message(
                     message.get('channel'),
                     ":heart:"
@@ -66,14 +67,14 @@ class ZeteBot(WebSocketClient):
             # Karma Info
             if match_text.startswith('karma '):
                 karma_user = text.split(' ')[1]
-                karma_stats = karma.KarmaHandler.get(karma_user)
+                karma_stats = plugins.KarmaHandler.get(karma_user)
                 self.send(self.format_message(channel, karma_stats))
                 return
 
             # Knowledge Storage
             if match_text.startswith('know that '):
                 new_fact = text[10:]
-                result = knowledge.KnowledgeHandler.learn(new_fact)
+                result = plugins.KnowledgeHandler.learn(new_fact)
                 self.send(self.format_message(channel, result))
                 return
 
@@ -81,21 +82,21 @@ class ZeteBot(WebSocketClient):
             identifiers = ('what is ', 'what are ', 'who is ', 'who are ')
             if any([match_text.startswith(ids) for ids in identifiers]):
                 question = ' '.join(match_text.split(' ')[2:])
-                result = knowledge.KnowledgeHandler.retrieve(question)
+                result = plugins.KnowledgeHandler.retrieve(question)
                 self.send(self.format_message(channel, result))
                 return
 
             # Quote Storage
             if match_text.startswith('remember quote '):
                 quotable = text[15:]
-                result = quote.QuoteHandler.remember(quotable)
+                result = plugins.QuoteHandler.remember(quotable)
                 self.send(self.format_message(channel, result))
                 return
 
             # Quote Retrieval
             if match_text.startswith('quote'):
                 speaker = text[5:].lstrip()
-                result = quote.QuoteHandler.retrieve(user=speaker)
+                result = plugins.QuoteHandler.retrieve(user=speaker)
                 self.send(self.format_message(channel, result))
                 return
 
@@ -108,7 +109,7 @@ class ZeteBot(WebSocketClient):
             if match_text.startswith('remind everyone'):
                 event = text[16:]
                 type_ = 'everyone'
-                result = remind.ReminderHandler.schedule(
+                result = plugins.ReminderHandler.schedule(
                     event,
                     channel,
                     user,
@@ -120,7 +121,7 @@ class ZeteBot(WebSocketClient):
             if match_text.startswith('remind channel'):
                 event = text[15:]
                 type_ = 'channel'
-                result = remind.ReminderHandler.schedule(
+                result = plugins.ReminderHandler.schedule(
                     event,
                     channel,
                     user,
