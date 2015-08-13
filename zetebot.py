@@ -1,14 +1,25 @@
 import json
+import traceback
 from threading import Lock
 
 import requests
 from ws4py.client.threadedclient import WebSocketClient
 
-import plugins
+from common import InputMessage
+from common import InvalidInputException
+from common import NoResponseException
+from common import OutputMessage
 from config import config
+from handler import *
 
 
-class InvalidInputException(Exception):
+class NotUserMessageException(Exception):
+    """ The activity received is not a message. Ignore it. """
+    pass
+
+
+class NotZetebotActivityException(Exception):
+    """ The activity received is from zetebot.  Ignore it. """
     pass
 
 
@@ -20,139 +31,144 @@ class ZeteBot(WebSocketClient):
         self.id_lock = Lock()
 
     def closed(self, code, reason=None):
-        self.send(
-            self.format_message(config.debug, "Zetebot connection closed.")
+        closed_message = 'Connection closed unexpectedly. Reason: %s' % reason
+        self.send_response(
+            OutputMessage(
+                channel=config.debug,
+                text=closed_message
+            )
         )
-        print "Connection was closed."
+        print closed_message
+
+#    def _received_message(self, m):
+#        """ DEPRECATED """
+#            # Begin feature handling
+#
+#            # just being nice
+#            possible_thanks = (match_text, match_text[:-1])
+#            valid_thanks = ('thanks zetebot', 'thank you zetebot')
+#            if any(x in possible_thanks for x in valid_thanks):
+#                self.send(self.format_message(
+#                    message.get('channel'),
+#                    ":heart:"
+#                ))
+#
+#            if match_text.startswith('remind everyone'):
+#                event = text[16:]
+#                type_ = 'everyone'
+#                result = handler.ReminderHandler.schedule(
+#                    event,
+#                    channel,
+#                    user,
+#                    type_
+#                )
+#                self.send(self.format_message(channel, result))
+#                return
+#
+#            if match_text.startswith('remind channel'):
+#                event = text[15:]
+#                type_ = 'channel'
+#                result = handler.ReminderHandler.schedule(
+#                    event,
+#                    channel,
+#                    user,
+#                    type_
+#                )
+#                self.send(self.format_message(channel, result))
+#                return
 
     def received_message(self, m):
         try:
-            message = json.loads(m.data)
+            slack_activity = json.loads(m.data)
 
-            if message.get('user') == config.botname:
-                # prevent feedback loops
-                return
+            message = self.get_input_message_from_activity(slack_activity)
 
-            if message.get('type') != 'message':
-                # we only care about message
-                return
+            handler = self.map_message_to_handler(
+                message.text.lower(),
+                authorized=message.user_id in EBOARD
+            )
 
-            text = ' '.join(message.get('text').split()).strip()
-            match_text = text.lower()
+            bot_response = handler.handle(message)
 
-            # Begin feature handling
+            self.send_response(bot_response)
 
-            # Karma Modifier
-            ops = ('++', '--', '+-')
-            if any(ids in text for ids in ops):
-                plugins.KarmaHandler.handle(text)
-                return
+        except (NotUserMessageException, NotZetebotActivityException):
+            pass
 
-            # just being nice
-            possible_thanks = (match_text, match_text[:-1])
-            valid_thanks = ('thanks zetebot', 'thank you zetebot')
-            if any(x in possible_thanks for x in valid_thanks):
-                self.send(self.format_message(
-                    message.get('channel'),
-                    ":heart:"
-                ))
+        except NoResponseException as e:
+            print e.message
 
-            # All other features start with 'zetebot'
-            if not match_text.startswith('zetebot '):
-                return
+        except InvalidInputException as e:
+            print "InvalidInputException: %s" % e.message
 
-            text = text[8:]  # remove 'zetebot' prefix
-            match_text = text.lower()  # remove 'zetebot' prefix
-            channel = message.get('channel')
+        except Exception:
+            # Something actually went wrong.
+            trace = traceback.format_exc()
+            error_response = OutputMessage(
+                channel=message.channel,
+                text=trace
+            )
+            self.send_response(error_response)
 
-            # Karma Info
-            if match_text.startswith('karma '):
-                karma_user = text.split(' ')[1]
-                karma_stats = plugins.KarmaHandler.get(karma_user)
-                self.send(self.format_message(channel, karma_stats))
-                return
+    @staticmethod
+    def get_input_message_from_activity(activity):
+        if activity.get('user') == config.botname:
+            raise NotUserMessageException('Activity was from bot.')
+        if activity.get('type') != 'message':
+            raise NotUserMessageException('Activity was not a message.')
 
-            # Knowledge Storage
-            if match_text.startswith('know that '):
-                new_fact = text[10:]
-                result = plugins.KnowledgeHandler.learn(new_fact)
-                self.send(self.format_message(channel, result))
-                return
+        return InputMessage(
+            user_id=activity['user'],
+            channel=activity['channel'],
+            text=' '.join(activity['text'].split()).strip()
+        )
 
-            # Knowledge Retrieval
-            identifiers = ('what is ', 'what are ', 'who is ', 'who are ')
-            if any([match_text.startswith(ids) for ids in identifiers]):
-                question = ' '.join(match_text.split(' ')[2:])
-                result = plugins.KnowledgeHandler.retrieve(question)
-                self.send(self.format_message(channel, result))
-                return
+    @staticmethod
+    def map_message_to_handler(text, authorized=False):
+        """ Get the associated handler for each input message.
 
-            # Quote Storage
-            if match_text.startswith('remember quote '):
-                quotable = text[15:]
-                result = plugins.QuoteHandler.remember(quotable)
-                self.send(self.format_message(channel, result))
-                return
+            Remove the word 'zetebot' using [8:] for all handlers
+            who expect it to be activated.
+        """
+        if StoreKnowledgeHandler.identify(text):
+            return StoreKnowledgeHandler
+        if GetKnowledgeHandler.identify(text):
+            return GetKnowledgeHandler
+        if StoreQuoteHandler.identify(text):
+            return StoreQuoteHandler
+        if GetQuoteHandler.identify(text):
+            return GetQuoteHandler
+        if KarmaStatsHandler.identify(text):
+            return KarmaStatsHandler
 
-            # Quote Retrieval
-            if match_text.startswith('quote'):
-                speaker = text[5:].lstrip()
-                result = plugins.QuoteHandler.retrieve(user=speaker)
-                self.send(self.format_message(channel, result))
-                return
+        # Only if user is in EBOARD
+        if authorized:
+            if ReminderHandler.identify(text):
+                return ReminderHandler
 
-            # PRIVILEGED COMMANDS BELOW THIS POINT #
-            if message.get('user') not in EBOARD:
-                return
+        # Lowest priority
+        if UpdateKarmaHandler.identify(text):
+            return UpdateKarmaHandler
 
-            user = message.get('user')
-
-            if match_text.startswith('remind everyone'):
-                event = text[16:]
-                type_ = 'everyone'
-                result = plugins.ReminderHandler.schedule(
-                    event,
-                    channel,
-                    user,
-                    type_
-                )
-                self.send(self.format_message(channel, result))
-                return
-
-            if match_text.startswith('remind channel'):
-                event = text[15:]
-                type_ = 'channel'
-                result = plugins.ReminderHandler.schedule(
-                    event,
-                    channel,
-                    user,
-                    type_
-                )
-                self.send(self.format_message(channel, result))
-                return
-
-        except InvalidInputException:
-            # A user messed up. Not my problem.
-            return
-        except Exception as e:
-            # Silence all exceptions so that the bot can keep working.
-            # It's likely caused by trying to parse malformed input
-            result = "Exception: %s" % repr(e)
-            self.send(self.format_message(config.debug, result))
+        raise NotZetebotActivityException()
 
     def get_id(self):
         with self.id_lock:
             self.id += 1
-            print "New id: %i" % self.id
             return self.id
 
-    def format_message(self, channel, text):
-        return '{{ "username": "{0}", \
-                   "type": "message", \
-                   "channel": "{1}", \
-                   "text": "{2}", \
-                   "id": {3} \
-                }}'.format(config.botname, channel, text, self.get_id())
+    def send_response(self, response):
+        formatted_response = json.dumps(
+            {
+                "username": config.botname,
+                "type": "message",
+                "channel": response.channel,
+                "text": response.text,
+                "id": self.get_id()
+            }
+        )
+        print "Sending response: %s" % repr(formatted_response)
+        self.send(formatted_response)
 
 if __name__ == '__main__':
     global EBOARD

@@ -3,8 +3,9 @@ in the database.  A different process polls the database for expiring events """
 import datetime
 import time as timemod
 
+from common import InvalidInputException
+from common import needs_zetebot
 from config import config
-from zetebot import InvalidInputException
 
 
 def from_now(**kwargs):
@@ -14,6 +15,12 @@ def from_now(**kwargs):
 class ReminderHandler(object):
 
     collection = config.db.events
+
+    @staticmethod
+    @needs_zetebot
+    def identify(text):
+        return text.startswith('remind ')
+
 
     @classmethod
     def schedule(cls, event, channel, user, type_):
