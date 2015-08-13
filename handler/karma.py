@@ -25,13 +25,13 @@ class UpdateKarmaHandler(KarmaHandler):
         op_gen = (symbol for symbol in cls.symbols if symbol in text)
         op = op_gen.next()
 
-        username = cls.get_username_from_text(text, op)
-        cls.update_karma(username, op)
+        username = cls._get_username_from_text(text, op)
+        cls._update_karma(username, op)
 
         raise NoResponseException('Karma updated: %s%s' % (username, op))
 
     @staticmethod
-    def get_username_from_text(text, op):
+    def _get_username_from_text(text, op):
         words = text.split(' ')
         username_gen = (word for word in words if word.endswith(op))
 
@@ -42,7 +42,7 @@ class UpdateKarmaHandler(KarmaHandler):
             raise InvalidInputException()
 
     @classmethod
-    def update_karma(cls, username, op):
+    def _update_karma(cls, username, op):
         cls.collection.update(
             {"name": username},
             {"$inc": {op: 1}},

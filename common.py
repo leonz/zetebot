@@ -1,4 +1,5 @@
 from collections import namedtuple
+from functools import wraps
 
 InputMessage = namedtuple('InputMessage', ['user_id', 'channel', 'text'])
 OutputMessage = namedtuple('OutputMessage', ['channel', 'text'])
@@ -14,7 +15,6 @@ class NoResponseException(Exception):
     """ Called when a zetebot command expects no response. """
     pass
 
-from functools import wraps
 
 def needs_zetebot(func):
     """ A decorator to be used for all handlers that require
@@ -27,9 +27,7 @@ def needs_zetebot(func):
 
 
 def needs_zetebot_cls(func):
-    """ Same as above, for class methods. Temporary
-        until I figure out a way to use the above better.
-    """
+    """ Same as above, for class methods. """
     def _func_decorated(cls, arg):
         return func(cls, _strip_zetebot(arg))
     return _func_decorated

@@ -55,7 +55,7 @@ class GetQuoteHandler(QuoteHandler):
     @needs_zetebot_cls
     def handle(cls, input_message):
         author = input_message.text[5:].lstrip().lower()
-        quote_doc = cls.get_random_quote_doc(author=author)
+        quote_doc = cls._get_random_quote_doc(author=author)
 
         if not quote_doc:
             message_text = (
@@ -74,8 +74,8 @@ class GetQuoteHandler(QuoteHandler):
         )
 
     @classmethod
-    def get_random_quote_doc(cls, author=None):
-        count = cls.get_count_of_quotes(author=author)
+    def _get_random_quote_doc(cls, author=None):
+        count = cls._get_count_of_quotes(author=author)
         if not count:
             return None
 
@@ -90,7 +90,7 @@ class GetQuoteHandler(QuoteHandler):
             return cls.collection.find_one(skip=skip)
 
     @classmethod
-    def get_count_of_quotes(cls, author=None):
+    def _get_count_of_quotes(cls, author=None):
         """ Count the number of quote documents in the table.
             If author is set, only includes their quotes.
         """
