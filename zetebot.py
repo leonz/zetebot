@@ -8,6 +8,7 @@ from ws4py.client.threadedclient import WebSocketClient
 from common import InputMessage
 from common import InvalidInputException
 from common import NoResponseException
+from common import NotZetebotActivityException
 from common import OutputMessage
 from config import config
 from handler import *
@@ -15,11 +16,6 @@ from handler import *
 
 class NotUserMessageException(Exception):
     """ The activity received is not a message. Ignore it. """
-    pass
-
-
-class NotZetebotActivityException(Exception):
-    """ The activity received is from zetebot.  Ignore it. """
     pass
 
 
@@ -114,7 +110,8 @@ class ZeteBot(WebSocketClient):
         if UpdateKarmaHandler.identify(text):
             return UpdateKarmaHandler
 
-        raise NotZetebotActivityException()
+        # Try to catch the rest
+        return MiscHandler
 
     def get_id(self):
         with self.id_lock:

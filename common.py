@@ -16,6 +16,11 @@ class NoResponseException(Exception):
     pass
 
 
+class NotZetebotActivityException(Exception):
+    """ The activity received is from zetebot.  Ignore it. """
+    pass
+
+
 def needs_zetebot(func):
     """ A decorator to be used for all handlers that require
         'zetebot' at the start the message text to be invoked.
