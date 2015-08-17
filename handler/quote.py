@@ -60,7 +60,7 @@ class GetQuoteHandler(QuoteHandler):
         if not quote_doc:
             message_text = (
                 "I can't remember any quotes"
-                "%s, too black" % (' from ' + author if author else '')
+                "%s, too blackout" % (' from ' + author if author else '')
             )
         else:
             message_text = '>\"{0}\" - {1}'.format(
