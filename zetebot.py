@@ -40,43 +40,6 @@ class ZeteBot(WebSocketClient):
         )
         print closed_message
 
-#    def _received_message(self, m):
-#        """ DEPRECATED """
-#            # Begin feature handling
-#
-#            # just being nice
-#            possible_thanks = (match_text, match_text[:-1])
-#            valid_thanks = ('thanks zetebot', 'thank you zetebot')
-#            if any(x in possible_thanks for x in valid_thanks):
-#                self.send(self.format_message(
-#                    message.get('channel'),
-#                    ":heart:"
-#                ))
-#
-#            if match_text.startswith('remind everyone'):
-#                event = text[16:]
-#                type_ = 'everyone'
-#                result = handler.ReminderHandler.schedule(
-#                    event,
-#                    channel,
-#                    user,
-#                    type_
-#                )
-#                self.send(self.format_message(channel, result))
-#                return
-#
-#            if match_text.startswith('remind channel'):
-#                event = text[15:]
-#                type_ = 'channel'
-#                result = handler.ReminderHandler.schedule(
-#                    event,
-#                    channel,
-#                    user,
-#                    type_
-#                )
-#                self.send(self.format_message(channel, result))
-#                return
-
     def received_message(self, m):
         try:
             slack_activity = json.loads(m.data)
@@ -104,6 +67,7 @@ class ZeteBot(WebSocketClient):
         except Exception:
             # Something actually went wrong.
             trace = traceback.format_exc()
+            print trace
             error_response = OutputMessage(
                 channel=message.channel,
                 text=trace
@@ -113,7 +77,7 @@ class ZeteBot(WebSocketClient):
     @staticmethod
     def get_input_message_from_activity(activity):
         if activity.get('user') == config.botname:
-            raise NotUserMessageException('Activity was from bot.')
+            raise NotZetebotActivityException('Activity was from bot.')
         if activity.get('type') != 'message':
             raise NotUserMessageException('Activity was not a message.')
 

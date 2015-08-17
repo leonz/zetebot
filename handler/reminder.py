@@ -5,11 +5,22 @@ import time as timemod
 
 from common import InvalidInputException
 from common import needs_zetebot
+from common import needs_zetebot_cls
+from common import OutputMessage
 from config import config
+
+
+GENERAL_CHANNEL = 'C04TKSW4X'
+MINIMUM_WAIT_MINS = 5
 
 
 def from_now(**kwargs):
     return datetime.datetime.now() + datetime.timedelta(**kwargs)
+
+
+class TimeTooCloseException(Exception):
+    """ Raised when a user requests a reminder sooner than MINIMUM_WAIT_MINS """
+    pass
 
 
 class ReminderHandler(object):
@@ -21,17 +32,65 @@ class ReminderHandler(object):
     def identify(text):
         return text.startswith('remind ')
 
-
     @classmethod
-    def schedule(cls, event, channel, user, type_):
-        timestamp, message = event.split(' that ')
-        message = message.strip()
-        if not message:
+    @needs_zetebot_cls
+    def handle(cls, input_message):
+        text = input_message.text
+
+        if text.lower().startswith('remind everyone '):
+            channel = GENERAL_CHANNEL
+            audience = 'everyone'
+            text = text[16:]
+        elif text.lower().startswith('remind channel '):
+            channel = input_message.channel
+            audience = 'this channel'
+            text = text[15:]
+        else:
+            raise InvalidInputException('Bad reminder audience')
+
+        try:
+            timestamp, message = text.strip().split(' that ')
+        except ValueError:
             raise InvalidInputException('No message in reminder')
 
-        timestamp = timestamp[3:]
-        if event.startswith('on '):
+        try:
+            event_time = cls.get_datetime_from_timestamp(
+                timestamp[3:],
+                relative=text.lower().startswith('in ')
+            )
+
+            if event_time < from_now(minutes=MINIMUM_WAIT_MINS-1):
+                raise TimeTooCloseException()
+
+        except TimeTooCloseException:
+            print "TimeTooCloseException: %s" % input_message.text
+            return OutputMessage(
+                channel=input_message.channel,
+                text=("Sorry, I can't do that. Give me at least "
+                      "5 minutes to schedule a reminder.")
+            )
+
+        else:
+            cls.collection.insert({
+                'time': event_time,
+                'user': input_message.user_id,
+                'channel': channel,
+                'message': message,
+                'type': audience if audience is 'everyone' else 'channel',
+                'pending': True
+            })
+
+            return OutputMessage(
+                channel=input_message.channel,
+                text="Okay, I'll remind %s then." % audience
+            )
+
+    @staticmethod
+    def get_datetime_from_timestamp(timestamp, relative=False):
+        if not relative:
             date, time = timestamp.split(' at ')
+            month, day, year = date.split('/')
+
             time = time.lower()
 
             twelve_correction = 0
@@ -45,7 +104,6 @@ class ReminderHandler(object):
                 time = time[:-2]
                 twelve_correction = 12
 
-            month, day, year = date.split('/')
             hour, minute = time.split(':')
 
             # 4 because we are working off of Eastern time
@@ -57,7 +115,7 @@ class ReminderHandler(object):
                 hour_corrected -= 24
                 day = int(day) + 1
 
-            event_time = datetime.datetime(
+            return datetime.datetime(
                 int(year),
                 int(month),
                 int(day),
@@ -65,36 +123,14 @@ class ReminderHandler(object):
                 int(minute)
             )
 
-            if event_time < from_now(minutes=5):
-                return ("Sorry, can't do that. Give at least 5 minutes "
-                        "to schedule a reminder.")
-
-        elif event.startswith('in '):
-
+        else:
             amount, unit = timestamp.split(' ')
 
-            if unit.startswith('minute'):
-                if int(amount) < 5:
-                    return ("Sorry, can't do that. Give at least 5 minutes "
-                            "to schedule a reminder.")
-                else:
-                    event_time = from_now(minutes=int(amount))
-            elif unit.startswith('hour'):
-                if int(amount) < 1:
-                    raise InvalidInputException(
-                        'Invalid amount for hours to reminder'
-                    )
-                else:
-                    event_time = from_now(hours=int(amount))
+            if unit.startswith('minute') and int(amount) > 0:
+                return from_now(minutes=int(amount))
 
-        cls.collection.insert({
-            'time': event_time,
-            'user': user,
-            'channel': channel,
-            'message': message,
-            'type': type_,
-            'pending': True
-        })
+            elif unit.startswith('hour') and int(amount) > 0:
+                return from_now(hours=int(amount))
 
-        them = 'the channel' if type_ == 'channel' else 'everyone'
-        return "Okay, I'll remind %s then." % them
+            else:
+                raise InvalidInputException()
