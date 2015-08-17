@@ -1,4 +1,5 @@
 from random import sample
+from re import match
 
 from common import NotZetebotActivityException
 from common import OutputMessage
@@ -8,8 +9,8 @@ from config import config
 class MiscHandler(object):
 
     thanks = ('thanks', 'thank you')
-    hello = ('hello', 'hey', 'hi', 'good morning', 'good afternoon',
-             'good evening', 'hola', 'yo', 'greetings')
+    hello = ('hello', 'hey ', 'hi', 'good morning', 'good afternoon',
+             'good evening', 'hola ', 'yo', 'greetings')
 
     hello_response = ('Hi there!', "What's up?", 'Hey!', )
 
@@ -28,8 +29,8 @@ class MiscHandler(object):
             message = ':heart:'
 
         # hello
-        if any(words in text for words in cls.hello):
-            message = sample(cls.hello_response, 1)
+        if any(match("\\b%s\\b" % words, text) for words in cls.hello):
+            message = sample(cls.hello_response, 1)[0]
 
         if message:
             return OutputMessage(
