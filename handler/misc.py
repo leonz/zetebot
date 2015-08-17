@@ -25,7 +25,7 @@ class MiscHandler(object):
         message = None
 
         # hello
-        if any(match("\\b%s\\b" % words, text) for words in cls.hello):
+        if any(match(r"(.*?)\b%s\b(.*?)" % words, text) for words in cls.hello):
             message = sample(cls.hello_response, 1)[0]
 
         # thanks!
