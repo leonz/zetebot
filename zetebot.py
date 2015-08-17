@@ -111,7 +111,10 @@ class ZeteBot(WebSocketClient):
             return UpdateKarmaHandler
 
         # Try to catch the rest
-        return MiscHandler
+        if MiscHandlerKarmaHandler.identify(text):
+            return MiscHandler
+
+        raise NotZetebotActivityException()
 
     def get_id(self):
         with self.id_lock:
