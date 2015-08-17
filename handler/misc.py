@@ -24,13 +24,13 @@ class MiscHandler(object):
 
         message = None
 
-        # thanks!
-        if any(words in text for words in cls.thanks):
-            message = ':heart:'
-
         # hello
         if any(match("\\b%s\\b" % words, text) for words in cls.hello):
             message = sample(cls.hello_response, 1)[0]
+
+        # thanks!
+        if any(words in text for words in cls.thanks):
+            message = ':heart:'
 
         if message:
             return OutputMessage(
