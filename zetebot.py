@@ -65,7 +65,7 @@ class ZeteBot(WebSocketClient):
             trace = traceback.format_exc()
             print trace
             error_response = OutputMessage(
-                channel=message.channel,
+                channel=config.debug,
                 text=trace
             )
             self.send_response(error_response)
