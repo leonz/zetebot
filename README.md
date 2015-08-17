@@ -1,7 +1,8 @@
 A simple chat bot for Slack using the real time messaging API, written in Python.  Features are based on those from Hubot by GitHub.
 
 Zetebot's general framework is defined in zetebot.py.  It's features are
-implemented via handlers, which are stored in the /handler folder.
+implemented via handlers, which are stored in the /handler folder. The scheduler
+is run independently from Zetebot in a separate process via cron.
 
 A handler requires two functions: identify and handle.  Identify returns a boolean
 if the input message matches the criteria for the handler, i.e., if that handler
