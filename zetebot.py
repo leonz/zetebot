@@ -111,12 +111,13 @@ class ZeteBot(WebSocketClient):
             return UpdateKarmaHandler
 
         # Try to catch the rest
-        if MiscHandlerKarmaHandler.identify(text):
+        if MiscHandler.identify(text):
             return MiscHandler
 
         raise NotZetebotActivityException()
 
     def get_id(self):
+        """ Needed to order Slack message """
         with self.id_lock:
             self.id += 1
             return self.id
