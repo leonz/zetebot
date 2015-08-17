@@ -9,10 +9,11 @@ from config import config
 class MiscHandler(object):
 
     thanks = ('thanks', 'thank you')
-    hello = ('hello', 'hey ', 'hi', 'good morning', 'good afternoon',
-             'good evening', 'hola ', 'yo', 'greetings')
+    hello = ('hello', 'hey', 'hi', 'good morning', 'good afternoon',
+             'good evening', 'hola', 'yo', 'greetings')
 
-    hello_response = ('Hi there!', "What's up?", 'Hey!', )
+    hello_response = ('Hi there!', "What's up?", 'Hey!', 'Hey buddy.',
+                      'Sup?', ':wave:')
 
     @classmethod
     def identify(cls, text):
