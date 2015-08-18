@@ -66,7 +66,7 @@ class ZeteBot(WebSocketClient):
             print trace
             error_response = OutputMessage(
                 channel=config.debug,
-                text=trace
+                text=slack_activity+trace
             )
             self.send_response(error_response)
 
