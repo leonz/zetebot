@@ -72,7 +72,7 @@ class ZeteBot(WebSocketClient):
 
     @staticmethod
     def get_input_message_from_activity(activity):
-        if activity.get('user') == config.botid:
+        if activity.get('user') == config.botid or 'bot_id' in activity:
             raise NotZetebotActivityException('Activity was from bot.')
         if activity.get('type') != 'message':
             raise NotUserMessageException('Activity was not a message.')
