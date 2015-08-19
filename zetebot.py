@@ -85,34 +85,23 @@ class ZeteBot(WebSocketClient):
 
     @staticmethod
     def map_message_to_handler(text, authorized=False):
-        """ Get the associated handler for each input message.
+        """ Get the associated handler for each input message. """
+        handlers = (GetKnowledgeHandler, StoreKnowledgeHandler, GetQuoteHandler,
+                    StoreQuoteHandler, KarmaStatsHandler)
 
-            Remove the word 'zetebot' using [8:] for all handlers
-            who expect it to be activated.
-        """
-        if StoreKnowledgeHandler.identify(text):
-            return StoreKnowledgeHandler
-        if GetKnowledgeHandler.identify(text):
-            return GetKnowledgeHandler
-        if StoreQuoteHandler.identify(text):
-            return StoreQuoteHandler
-        if GetQuoteHandler.identify(text):
-            return GetQuoteHandler
-        if KarmaStatsHandler.identify(text):
-            return KarmaStatsHandler
+        for handler in handlers:
+            if handler.identify(text):
+                return handler
 
         # Only if user is in EBOARD
         if authorized:
             if ReminderHandler.identify(text):
                 return ReminderHandler
 
-        # Lowest priority
-        if UpdateKarmaHandler.identify(text):
-            return UpdateKarmaHandler
-
-        # Try to catch the rest
-        if MiscHandler.identify(text):
-            return MiscHandler
+        # Lowest priority handlers
+        for handler in (UpdateKarmaHandler, MiscHandler):
+            if handler.identify(text):
+                return handler
 
         raise NotZetebotActivityException()
 
