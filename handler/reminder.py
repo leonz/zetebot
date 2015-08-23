@@ -114,7 +114,9 @@ class ReminderHandler(object):
             # 4 because we are working off of Eastern time
             tz_offset = 4
             timezone_correction = tz_offset + (1 - timemod.localtime().tm_isdst)
+            print timezone_correction
             hour_corrected = int(hour) + twelve_correction + timezone_correction
+            print hour, hour_corrected
 
             if hour_corrected > 23:
                 hour_corrected -= 24
