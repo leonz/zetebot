@@ -58,12 +58,7 @@ class ReminderHandler(object):
                 timestamp[3:],
                 relative=text.lower().startswith('in ')
             )
-            print 'test'
-            print event_time.isoformat()
-            print repr(event_time)
 
-            # TODO: This doesn't work for absolute reminders because
-            # of the conversion from EST to UDT
             if event_time < from_now(minutes=MINIMUM_WAIT_MINS-1):
                 raise TimeTooCloseException()
 
