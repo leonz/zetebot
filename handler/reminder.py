@@ -1,13 +1,13 @@
 """ This class is only responsible for scheduling events, i.e. storing them
 in the database.  A different process polls the database for expiring events """
 import datetime
-import time as timemod
 
 from common import InvalidInputException
 from common import needs_zetebot
 from common import needs_zetebot_cls
 from common import OutputMessage
 from config import config
+#import time as timemod # Doesn't work as expected on Heroku
 
 
 GENERAL_CHANNEL = 'C04TKSW4X'
@@ -113,10 +113,8 @@ class ReminderHandler(object):
 
             # 4 because we are working off of Eastern time
             tz_offset = 4
-            timezone_correction = tz_offset + (1 - timemod.localtime().tm_isdst)
-            print timezone_correction
+            timezone_correction = tz_offset #+ (1 - timemod.localtime().tm_isdst)
             hour_corrected = int(hour) + twelve_correction + timezone_correction
-            print hour, hour_corrected
 
             if hour_corrected > 23:
                 hour_corrected -= 24
