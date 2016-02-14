@@ -1,7 +1,7 @@
 from collections import namedtuple
 from functools import wraps
 
-import config
+from config import config
 
 InputMessage = namedtuple('InputMessage', ['user_id', 'channel', 'text'])
 OutputMessage = namedtuple('OutputMessage', ['channel', 'text'])
