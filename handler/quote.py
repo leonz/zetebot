@@ -21,6 +21,10 @@ class StoreQuoteHandler(QuoteHandler):
     @classmethod
     @needs_zetebot_cls
     def handle(cls, input_message):
+        # temporarily block this user
+        if input_message.user_id in (u'D09SE2P47'):
+            return
+
         """ text: user quote (with "") """
         words = input_message.text.split('"')
         user = words[0].lower().strip()[15:]
@@ -54,6 +58,7 @@ class GetQuoteHandler(QuoteHandler):
     @classmethod
     @needs_zetebot_cls
     def handle(cls, input_message):
+
         author = input_message.text[5:].lstrip().lower()
         quote_doc = cls._get_random_quote_doc(author=author)
 

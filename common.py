@@ -1,6 +1,8 @@
 from collections import namedtuple
 from functools import wraps
 
+from config import botname
+
 InputMessage = namedtuple('InputMessage', ['user_id', 'channel', 'text'])
 OutputMessage = namedtuple('OutputMessage', ['channel', 'text'])
 
@@ -40,11 +42,18 @@ def needs_zetebot_cls(func):
 
 def _strip_zetebot(message):
     """ message is a string, unicode, or InputMessage """
+    start_len = len(botname) + 1
     if type(message) in (str, unicode):
-        return message[8:]
+        if not message[:start_len] == botname + ' ':
+            return ''
+        return message[start_len:]
     else:
+        result_text = ''
+        if message.text[:start_len] == botname + ' ':
+            result_text = message.text[start_len:]
+
         return InputMessage(
             user_id=message.user_id,
             channel=message.channel,
-            text=message.text[8:]
+            text=result_text
         )
