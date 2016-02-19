@@ -21,9 +21,8 @@ class StoreQuoteHandler(QuoteHandler):
     @classmethod
     @needs_zetebot_cls
     def handle(cls, input_message):
-        # temporarily block this user
-        if input_message.user_id in (u'D09SE2P47'):
-            return
+
+        print input_message
 
         """ text: user quote (with "") """
         words = input_message.text.split('"')
