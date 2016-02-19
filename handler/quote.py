@@ -21,9 +21,6 @@ class StoreQuoteHandler(QuoteHandler):
     @classmethod
     @needs_zetebot_cls
     def handle(cls, input_message):
-
-        print input_message
-
         """ text: user quote (with "") """
         words = input_message.text.split('"')
         user = words[0].lower().strip()[15:]

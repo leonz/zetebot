@@ -43,7 +43,7 @@ def needs_zetebot_cls(func):
 def _strip_zetebot(message):
     """ message is a string, unicode, or InputMessage """
     start_len = len(config.botname) + 1
-    print message
+
     if type(message) in (str, unicode):
         if not message[:start_len].lower() == config.botname + ' ':
             return ''
