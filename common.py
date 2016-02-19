@@ -45,12 +45,12 @@ def _strip_zetebot(message):
     start_len = len(config.botname) + 1
     print message
     if type(message) in (str, unicode):
-        if not message[:start_len] == config.botname + ' ':
+        if not message[:start_len].lower() == config.botname + ' ':
             return ''
         return message[start_len:]
     else:
         result_text = ''
-        if message.text[:start_len] == config.botname + ' ':
+        if message.text[:start_len].lower() == config.botname + ' ':
             result_text = message.text[start_len:]
 
         return InputMessage(
